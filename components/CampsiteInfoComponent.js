@@ -35,6 +35,7 @@ function RenderCampsite(props) {
 	const view = React.createRef();
 
 	const recognizeDrag = ({ dx }) => (dx < -200 ? true : false);
+	const recognizeComment = ({ dx }) => (dx > 200 ? true : false);
 
 	const panResponder = PanResponder.create({
 		onStartShouldSetPanResponder: () => true,
@@ -65,11 +66,12 @@ function RenderCampsite(props) {
 									: props.markFavorite(),
 						},
 					],
-					{
-						cancelable: false,
-					}
+					{ cancelable: false }
 				);
+			} else if (recognizeComment(gestureState)) {
+				props.onShowModal();
 			}
+
 			return true;
 		},
 	});
@@ -120,8 +122,15 @@ function RenderComments({ comments }) {
 		return (
 			<View style={{ margin: 10 }}>
 				<Text style={{ fontSize: 14 }}>{item.text}</Text>
-				<Text style={{ fontSize: 12 }}>{item.rating} Stars</Text>
-				<Text style={{ fontSize: 12 }}>{`-- $item.author}, ${item.date}`}</Text>
+				<Rating
+					startingValue={item.rating}
+					imageSize={10}
+					style={{ alignItems: "flex-start", paddingVertical: "5%" }}
+					readonly
+				/>
+				<Text
+					style={{ fontSize: 12 }}
+				>{`-- ${item.author}, ${item.date}`}</Text>
 			</View>
 		);
 	};
@@ -188,9 +197,11 @@ class CampsiteInfo extends Component {
 		const campsite = this.props.campsites.campsites.filter(
 			(campsite) => campsite.id === campsiteId
 		)[0];
+
 		const comments = this.props.comments.comments.filter(
 			(comment) => comment.campsiteId === campsiteId
 		);
+
 		return (
 			<ScrollView>
 				<RenderCampsite
@@ -232,12 +243,7 @@ class CampsiteInfo extends Component {
 							title="Submit"
 							color="#5637DD"
 							onPress={() => {
-								this.handleComment(
-									campsiteId,
-									this.state.rating,
-									this.state.author,
-									this.state.text
-								);
+								this.handleComment(campsiteId);
 								this.resetForm();
 							}}
 						></Button>
